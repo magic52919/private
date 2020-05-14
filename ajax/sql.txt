@@ -1,0 +1,623 @@
+select b1.GameKind_Key,b3.wagerstotal_kind_old,b1.Isp_Domain,b5.wagerstotal_isp_old,b1.CR_name,b1.wagerstotal_old as ttttt,
+b1.wagerstotal_old/b3.wagerstotal_kind_old as wagerstotal_old_ratio,(b1.wagerstotal_new/b4.wagerstotal_kind_new - b1.wagerstotal_old/b3.wagerstotal_kind_old) as wagerstotal_name_diff,b1.wagerstotal_new, 
+b1.wagerstotal_new/b4.wagerstotal_kind_new as wagerstotal_new_ratio, b1.wagerstotal_diff, b1.wagerstotal_rate,count(b2.wagerstotal_old) as rank
+from (select  a1.*,concat(a1.Country_Name,'-',a1.Region_Name) as CR_name, IFNULL(a2.wagerstotal_new,0) as wagerstotal_new,
+	  IFNULL(a2.wagerstotal_new,0)-a1.wagerstotal_old as wagerstotal_diff, (IFNULL(a2.wagerstotal_new,0)-a1.wagerstotal_old)/a1.wagerstotal_old as wagerstotal_rate
+	  from (select GameKind_Key,Isp_Domain,Country_Name,Region_Name,sum(WagersTotal) as wagerstotal_old from Aggr_WagersIP_Geolocation 
+	  where GameKind_Key = '5' and WagersDate_Key = '2020-03-28' and Isp_Domain in ('电信','移动','联通')
+      group by GameKind_Key,Isp_Domain,Country_Name,Region_Name  ) a1 
+      left join (select GameKind_Key,Isp_Domain,Country_Name,Region_Name,sum(WagersTotal) as wagerstotal_new from Aggr_WagersIP_Geolocation 
+	  where GameKind_Key = '5' and WagersDate_Key = '2020-03-29' and Isp_Domain in ('电信','移动','联通')
+      group by GameKind_Key,Isp_Domain,Country_Name,Region_Name) a2 
+      on a1.GameKind_Key=a2.GameKind_Key and a1.Isp_Domain=a2.Isp_Domain and a1.Country_Name=a2.Country_Name and a1.Region_Name=a2.Region_Name) b1 ,
+      (select  a1.*,concat(a1.Country_Name,'-',a1.Region_Name) as CR_name, IFNULL(a2.wagerstotal_new,0) as wagerstotal_new,
+	  IFNULL(a2.wagerstotal_new,0)-a1.wagerstotal_old as wagerstotal_diff, (IFNULL(a2.wagerstotal_new,0)-a1.wagerstotal_old)/a1.wagerstotal_old as wagerstotal_rate 
+  from (select GameKind_Key,Isp_Domain,Country_Name,Region_Name,sum(WagersTotal) as wagerstotal_old from Aggr_WagersIP_Geolocation 
+	  where GameKind_Key = '5' and WagersDate_Key = '2020-03-28' and Isp_Domain in ('电信','移动','联通')
+      group by GameKind_Key,Isp_Domain,Country_Name,Region_Name  ) a1 
+      left join (select GameKind_Key,Isp_Domain,Country_Name,Region_Name,sum(WagersTotal) as wagerstotal_new from Aggr_WagersIP_Geolocation 
+	  where GameKind_Key = '5' and WagersDate_Key  = '2020-03-29' and Isp_Domain in ('电信','移动','联通')
+      group by GameKind_Key,Isp_Domain,Country_Name,Region_Name) a2 
+      on a1.GameKind_Key=a2.GameKind_Key and a1.Isp_Domain=a2.Isp_Domain and a1.Country_Name=a2.Country_Name and a1.Region_Name=a2.Region_Name) b2,
+      (select GameKind_Key,sum(WagersTotal) as wagerstotal_kind_old from Aggr_WagersIP_Geolocation 
+	  where GameKind_Key = '5' and WagersDate_Key = '2020-03-28' group by GameKind_Key) b3,
+       (select GameKind_Key,sum(WagersTotal) as wagerstotal_kind_new from Aggr_WagersIP_Geolocation 
+	  where GameKind_Key = '5' and WagersDate_Key = '2020-03-29' group by GameKind_Key) b4,
+       (select GameKind_Key,Isp_Domain,sum(WagersTotal) as wagerstotal_isp_old from Aggr_WagersIP_Geolocation 
+	  where GameKind_Key = '5' and WagersDate_Key = '2020-03-28' group by GameKind_Key,Isp_Domain) b5
+where b1.GameKind_Key=b2.GameKind_Key and b1.Isp_Domain=b2.Isp_Domain 
+and ((b1.wagerstotal_diff >b2.wagerstotal_diff) or (b1.wagerstotal_diff =b2.wagerstotal_diff and b1.CR_name=b2.CR_name))
+     and b1.GameKind_Key=b3.GameKind_Key and b1.GameKind_Key=b4.GameKind_Key
+     and b1.GameKind_Key=b5.GameKind_Key and b1.Isp_Domain=b5.Isp_Domain
+group by b1.GameKind_Key,b1.Isp_Domain, b1.CR_name,b1.wagerstotal_diff
+having rank <=3
+order by b1.GameKind_Key,b1.Isp_Domain,rank;
+
+
+select b1.GameKind_Key,b1.API,b1.Login_Code,b1.wagerstotal_old,b1.wagerstotal_old/b3.wagerstotal_all_old as wagerstotal_old_ratio,
+b1.wagerstotal_new,b1.wagerstotal_new/b4.wagerstotal_all_new as wagerstotal_new_ratio,b1.wagerstotal_diff,b1.wagerstotal_rate,
+sum(b2.wagerstotal_old)/b3.WagersTotal_all_old as cumulative_percent
+from (select a1.*, IFNULL(a2.wagerstotal_new,0) as wagerstotal_new,
+	  IFNULL(a2.wagerstotal_new,0)-a1.wagerstotal_old as wagerstotal_diff, (IFNULL(a2.wagerstotal_new,0)-a1.wagerstotal_old)/a1.wagerstotal_old as wagerstotal_rate
+      from (select GameKind_Key,API,Hall_Key,Login_Code,sum(WagersTotal) as wagerstotal_old from Aggr_WagersIP_Geolocation 
+      where WagersDate_Key = '2020-03-28' and GameKind_Key=5
+	  group by GameKind_Key,API,Hall_Key,Login_Code) a1 
+      left join (select GameKind_Key,API,Hall_Key,Login_Code,sum(WagersTotal) as wagerstotal_new from Aggr_WagersIP_Geolocation 
+	  where WagersDate_Key = '2020-03-29' and GameKind_Key=5
+      group by GameKind_Key,API,Hall_Key,Login_Code) a2 
+      on a1.GameKind_Key=a2.GameKind_Key and a1.API=a2.API and a1.Hall_Key=a2.Hall_Key and a1.Login_Code=a2.Login_Code) b1 ,
+
+      (select a1.*, IFNULL(a2.wagerstotal_new,0) as wagerstotal_new,
+	  IFNULL(a2.wagerstotal_new,0)-a1.wagerstotal_old as wagerstotal_diff, (IFNULL(a2.wagerstotal_new,0)-a1.wagerstotal_old)/a1.wagerstotal_old as wagerstotal_rate
+      from (select GameKind_Key,API,Hall_Key,Login_Code,sum(WagersTotal) as wagerstotal_old from Aggr_WagersIP_Geolocation 
+      where WagersDate_Key = '2020-03-28' and GameKind_Key=5  
+	  group by GameKind_Key,API,Hall_Key,Login_Code) a1 
+      left join (select GameKind_Key,API,Hall_Key,Login_Code,sum(WagersTotal) as wagerstotal_new from Aggr_WagersIP_Geolocation 
+	  where WagersDate_Key = '2020-03-29' and GameKind_Key=5
+      group by GameKind_Key,API,Hall_Key,Login_Code) a2 
+      on a1.GameKind_Key=a2.GameKind_Key and a1.API=a2.API and a1.Hall_Key=a2.Hall_Key and a1.Login_Code=a2.Login_Code) b2,
+
+      (select GameKind_Key,sum(WagersTotal) as wagerstotal_all_old from Aggr_WagersIP_Geolocation 
+      where WagersDate_Key = '2020-03-28' and GameKind_Key=5  group by GameKind_Key) b3,
+      (select GameKind_Key,sum(WagersTotal) as wagerstotal_all_new from Aggr_WagersIP_Geolocation 
+      where WagersDate_Key ='2020-03-29' and GameKind_Key=5 group by GameKind_Key) b4
+where b1.GameKind_Key=b2.GameKind_Key and ((b1.wagerstotal_old<b2.wagerstotal_old) or (b1.wagerstotal_old=b2.wagerstotal_old and b1.Hall_Key=b2.Hall_Key)) 
+      and b1.GameKind_Key=b3.GameKind_Key and b1.GameKind_Key=b4.GameKind_Key
+group by b1.GameKind_Key,b1.Login_Code,b1.wagerstotal_old
+having cumulative_percent<=0.8 and b1.API=0
+order by b1.GameKind_Key,b1.wagerstotal_diff
+limit 10;
+
+select sum(WagersTotal) as wagersTotal,Login_Code from Aggr_WagersIP_Geolocation where WagersDate_Key = '2020-04-03' and  GameKind_Key =5 group by Login_Code order by wagersTotal desc limit 10;
+
+select b1.GameKind_Key,b1.Isp_Domain,b1.cityname,sum(b1.WagersTotal) as 1_wagersTotal,sum(b2.WagersTotal) as 2_wagersTotal,sum(b3.WagersTotal) as 3_wagersTotal,sum(b1.WagersTotal)/31,sum(b2.WagersTotal)/29,sum(b3.WagersTotal)/24,format((sum(b2.WagersTotal)/29 - sum(b1.WagersTotal)/31)/(sum(b2.WagersTotal)/29 )*100,2) as 1_2rate,format((sum(b3.WagersTotal)/24 - sum(b2.WagersTotal)/29)/(sum(b3.WagersTotal)/24 )*100,2) as 2_3rate 
+from  (select GameKind_Key,Isp_Domain,concat(Country_Name,'-',Region_Name) as cityname,sum(WagersTotal) as wagersTotal from Aggr_WagersIP_Geolocation 
+where WagersDate_Key = '2020-05-05' and GameKind_Key =5 and Region_Name like '湖北' and Isp_Domain in ('电信','移动','联通') group by GameKind_Key,Isp_Domain,cityname order by GameKind_Key,Isp_Domain) b1,
+      (select GameKind_Key,Isp_Domain,concat(Country_Name,'-',Region_Name) as cityname,sum(WagersTotal) as wagersTotal from Aggr_WagersIP_Geolocation 
+where WagersDate_Key = '2020-05-06' and GameKind_Key =5 and Region_Name like '湖北' and Isp_Domain in ('电信','移动','联通') group by GameKind_Key,Isp_Domain,cityname order by GameKind_Key,Isp_Domain) b2,
+      (select GameKind_Key,Isp_Domain,concat(Country_Name,'-',Region_Name) as cityname,sum(WagersTotal) as wagersTotal from Aggr_WagersIP_Geolocation 
+where WagersDate_Key between '2020-03-01' and '2020-03-24' and GameKind_Key =5 and Region_Name like '湖北' and Isp_Domain in ('电信','移动','联通') group by GameKind_Key,Isp_Domain,cityname order by GameKind_Key,Isp_Domain) b3
+where (b1.GameKind_Key=b2.GameKind_Key and b2.GameKind_Key=b3.GameKind_Key) and (b1.Isp_Domain=b2.Isp_Domain and b2.Isp_Domain=b3.Isp_Domain)
+group by b1.GameKind_Key,b1.Isp_Domain,b1.cityname
+order by b1.GameKind_Key,b1.Isp_Domain;
+
+select b1.GameKind_Key, b1.WagersTotal as day_wagersTotal,b3.laday_wagersTotal as laday_wagersTotal,FORMAT((b1.WagersTotal-b3.laday_wagersTotal)/b1.WagersTotal*100,2) as day_diff_wagersTotal , b2.week_wagersTotal as week_wagersTotal,FORMAT((b1.WagersTotal-b2.week_wagersTotal)/b1.WagersTotal*100,2) as week_diff_wagersTotal ,b2.mon_wagersTotal as mon_wagersTotal, FORMAT((b1.WagersTotal-b2.mon_wagersTotal)/b1.WagersTotal*100,2) as mon_diff_wagersTotal
+from (select GameKind_Key,sum(WagersTotal) as wagersTotal from Aggr_WagersIP_Geolocation where WagersDate_Key = '2020-03-29' group by GameKind_Key order by GameKind_Key )b1,
+     (select a1.*, IFNULL(a2.wagersTotal,0) as mon_wagersTotal
+     from (select GameKind_Key,sum(WagersTotal) as week_wagersTotal from Aggr_WagersIP_Geolocation where WagersDate_Key = '2020-03-22' group by GameKind_Key order by GameKind_Key )a1
+     left join (select GameKind_Key,sum(WagersTotal) as wagersTotal from Aggr_WagersIP_Geolocation where WagersDate_Key = '2020-03-02' group by GameKind_Key order by GameKind_Key )a2
+     on a1.GameKind_Key= a2.GameKind_Key) b2,
+     (select GameKind_Key,sum(WagersTotal) as laday_wagersTotal from Aggr_WagersIP_Geolocation where WagersDate_Key = '2020-03-28' group by GameKind_Key order by GameKind_Key )b3
+where (b1.GameKind_Key=b2.GameKind_Key and b2.GameKind_Key=b3.GameKind_Key)
+group by b1.GameKind_Key
+order by b1.GameKind_Key;
+
+select b1.GameKind_Key,b1.API,b1.Login_Code,b1.wagerstotal_old,b1.wagerstotal_old/b3.wagerstotal_all_old as wagerstotal_old_ratio,
+b1.wagerstotal_new,b1.wagerstotal_new/b4.wagerstotal_all_new as wagerstotal_new_ratio,b1.wagerstotal_diff,format(b1.wagerstotal_rate*100,2) as wagerstotal_rate,
+sum(b2.wagerstotal_old)/b3.WagersTotal_all_old as cumulative_percent
+from (select a1.*, IFNULL(a2.wagerstotal_new,0) as wagerstotal_new,
+	  IFNULL(a2.wagerstotal_new,0)-a1.wagerstotal_old as wagerstotal_diff, (IFNULL(a2.wagerstotal_new,0)-a1.wagerstotal_old)/a1.wagerstotal_old as wagerstotal_rate
+      from (select GameKind_Key,API,Hall_Key,Login_Code,sum(WagersTotal) as wagerstotal_old from Aggr_WagersIP_Geolocation 
+      where WagersDate_Key = '2020-03-28' and GameKind_Key=5
+	  group by GameKind_Key,API,Hall_Key,Login_Code) a1 
+      left join (select GameKind_Key,API,Hall_Key,Login_Code,sum(WagersTotal) as wagerstotal_new from Aggr_WagersIP_Geolocation 
+	  where WagersDate_Key = '2020-03-29' and GameKind_Key=5
+      group by GameKind_Key,API,Hall_Key,Login_Code) a2 
+      on a1.GameKind_Key=a2.GameKind_Key and a1.API=a2.API and a1.Hall_Key=a2.Hall_Key and a1.Login_Code=a2.Login_Code) b1 ,
+
+      (select a1.*, IFNULL(a2.wagerstotal_new,0) as wagerstotal_new,
+	  IFNULL(a2.wagerstotal_new,0)-a1.wagerstotal_old as wagerstotal_diff, (IFNULL(a2.wagerstotal_new,0)-a1.wagerstotal_old)/a1.wagerstotal_old as wagerstotal_rate
+      from (select GameKind_Key,API,Hall_Key,Login_Code,sum(WagersTotal) as wagerstotal_old from Aggr_WagersIP_Geolocation 
+      where WagersDate_Key = '2020-03-28' and GameKind_Key=5  
+	  group by GameKind_Key,API,Hall_Key,Login_Code) a1 
+      left join (select GameKind_Key,API,Hall_Key,Login_Code,sum(WagersTotal) as wagerstotal_new from Aggr_WagersIP_Geolocation 
+	  where WagersDate_Key = '2020-03-29' and GameKind_Key=5
+      group by GameKind_Key,API,Hall_Key,Login_Code) a2 
+      on a1.GameKind_Key=a2.GameKind_Key and a1.API=a2.API and a1.Hall_Key=a2.Hall_Key and a1.Login_Code=a2.Login_Code) b2,
+
+      (select GameKind_Key,sum(WagersTotal) as wagerstotal_all_old from Aggr_WagersIP_Geolocation 
+      where WagersDate_Key = '2020-03-28' and GameKind_Key=5  group by GameKind_Key) b3,
+      (select GameKind_Key,sum(WagersTotal) as wagerstotal_all_new from Aggr_WagersIP_Geolocation 
+      where WagersDate_Key ='2020-03-29' and GameKind_Key=5 group by GameKind_Key) b4
+where b1.GameKind_Key=b2.GameKind_Key and ((b1.wagerstotal_old<b2.wagerstotal_old) or (b1.wagerstotal_old=b2.wagerstotal_old and b1.Hall_Key=b2.Hall_Key)) 
+      and b1.GameKind_Key=b3.GameKind_Key and b1.GameKind_Key=b4.GameKind_Key
+group by b1.GameKind_Key,b1.Login_Code,b1.wagerstotal_old
+having cumulative_percent<=0.8 and b1.API=0
+order by b1.GameKind_Key,b1.wagerstotal_diff
+limit 10;
+
+
+
+
+
+select b1.GameKind_Key,b1.Isp_Domain,b1.CR_name,b1.wagerstotal_old as ttttt,b1.wagerstotal_new, b1.wagerstotal_diff, format(b1.wagerstotal_rate*100,2),count(b2.wagerstotal_old) as rank
+from (select  a1.*,concat(a1.Country_Name,'-',a1.Region_Name) as CR_name, IFNULL(a2.wagerstotal_new,0) as wagerstotal_new,
+	  IFNULL(a2.wagerstotal_new,0)-a1.wagerstotal_old as wagerstotal_diff, (IFNULL(a2.wagerstotal_new,0)-a1.wagerstotal_old)/a1.wagerstotal_old as wagerstotal_rate
+	  from (select GameKind_Key,Isp_Domain,Country_Name,Region_Name,sum(WagersTotal) as wagerstotal_old from Aggr_WagersIP_Geolocation 
+	  where GameKind_Key = '5' and WagersDate_Key = '2020-03-29' and Isp_Domain in ('电信','移动','联通')
+      group by GameKind_Key,Isp_Domain,Country_Name,Region_Name  ) a1 
+      left join (select GameKind_Key,Isp_Domain,Country_Name,Region_Name,sum(WagersTotal) as wagerstotal_new from Aggr_WagersIP_Geolocation 
+	  where GameKind_Key = '5' and WagersDate_Key = '2020-03-28' and Isp_Domain in ('电信','移动','联通')
+      group by GameKind_Key,Isp_Domain,Country_Name,Region_Name) a2 
+      on a1.GameKind_Key=a2.GameKind_Key and a1.Isp_Domain=a2.Isp_Domain and a1.Country_Name=a2.Country_Name and a1.Region_Name=a2.Region_Name) b1 ,
+      (select  a1.*,concat(a1.Country_Name,'-',a1.Region_Name) as CR_name, IFNULL(a2.wagerstotal_new,0) as wagerstotal_new,
+	  IFNULL(a2.wagerstotal_new,0)-a1.wagerstotal_old as wagerstotal_diff, (IFNULL(a2.wagerstotal_new,0)-a1.wagerstotal_old)/a1.wagerstotal_old as wagerstotal_rate 
+  from (select GameKind_Key,Isp_Domain,Country_Name,Region_Name,sum(WagersTotal) as wagerstotal_old from Aggr_WagersIP_Geolocation 
+	  where GameKind_Key = '5' and WagersDate_Key = '2020-03-29' and Isp_Domain in ('电信','移动','联通')
+      group by GameKind_Key,Isp_Domain,Country_Name,Region_Name  ) a1 
+      left join (select GameKind_Key,Isp_Domain,Country_Name,Region_Name,sum(WagersTotal) as wagerstotal_new from Aggr_WagersIP_Geolocation 
+	  where GameKind_Key = '5' and WagersDate_Key  = '2020-03-28' and Isp_Domain in ('电信','移动','联通')
+      group by GameKind_Key,Isp_Domain,Country_Name,Region_Name) a2 
+      on a1.GameKind_Key=a2.GameKind_Key and a1.Isp_Domain=a2.Isp_Domain and a1.Country_Name=a2.Country_Name and a1.Region_Name=a2.Region_Name) b2,
+       (select GameKind_Key,Isp_Domain from Aggr_WagersIP_Geolocation 
+	  where GameKind_Key = '5' and WagersDate_Key = '2020-03-29' group by GameKind_Key,Isp_Domain) b5
+where b1.GameKind_Key=b2.GameKind_Key and b1.Isp_Domain=b2.Isp_Domain 
+and ((b1.wagerstotal_diff >b2.wagerstotal_diff) or (b1.wagerstotal_diff =b2.wagerstotal_diff and b1.CR_name=b2.CR_name))
+     and b1.GameKind_Key=b5.GameKind_Key and b1.Isp_Domain=b5.Isp_Domain
+group by b1.GameKind_Key,b1.Isp_Domain, b1.CR_name,b1.wagerstotal_diff
+having rank <=3
+order by b1.GameKind_Key,b1.Isp_Domain,rank;
+
+
+
+
+
+select b1.GameKind_Key,b1.Isp_Domain,b1.CR_name,b1.wagerstotal_old,b1.wagerstotal_new, b1.wagerstotal_rate,
+(b1.wagerstotal_new/b4.wagerstotal_kind_new - b1.wagerstotal_old/b3.wagerstotal_kind_old) as wagerstotal_isp,count(b2.wagerstotal_old) as rank
+
+from (select  a1.*,concat(a1.Country_Name,'-',a1.Region_Name) as CR_name, IFNULL(a2.wagerstotal_new,0) as wagerstotal_new,
+	  (IFNULL(a2.wagerstotal_new,0)-a1.wagerstotal_old)/a1.wagerstotal_old as wagerstotal_rate
+  from (select GameKind_Key,Isp_Domain,Country_Name,Region_Name,sum(WagersTotal) as wagerstotal_old from Aggr_WagersIP_Geolocation 
+	  where GameKind_Key = '5' and WagersDate_Key = '2020-03-28' and Isp_Domain in ('电信','移动','联通')
+      group by GameKind_Key,Isp_Domain,Country_Name,Region_Name  ) a1 
+      left join (select GameKind_Key,Isp_Domain,Country_Name,Region_Name,sum(WagersTotal) as wagerstotal_new from Aggr_WagersIP_Geolocation 
+	  where GameKind_Key = '5' and WagersDate_Key = '2020-03-29' and Isp_Domain in ('电信','移动','联通')
+      group by GameKind_Key,Isp_Domain,Country_Name,Region_Name) a2 
+      on a1.GameKind_Key=a2.GameKind_Key and a1.Isp_Domain=a2.Isp_Domain and a1.Country_Name=a2.Country_Name and a1.Region_Name=a2.Region_Name) b1 ,
+
+
+      (select  a1.*,concat(a1.Country_Name,'-',a1.Region_Name) as CR_name, IFNULL(a2.wagerstotal_new,0) as wagerstotal_new,
+	 (IFNULL(a2.wagerstotal_new,0)-a1.wagerstotal_old)/a1.wagerstotal_old as wagerstotal_rate 
+  from (select GameKind_Key,Isp_Domain,Country_Name,Region_Name,sum(WagersTotal) as wagerstotal_old from Aggr_WagersIP_Geolocation 
+	  where GameKind_Key = '5' and WagersDate_Key = '2020-03-28' and Isp_Domain in ('电信','移动','联通')
+      group by GameKind_Key,Isp_Domain,Country_Name,Region_Name  ) a1 
+      left join (select GameKind_Key,Isp_Domain,Country_Name,Region_Name,sum(WagersTotal) as wagerstotal_new from Aggr_WagersIP_Geolocation 
+	  where GameKind_Key = '5' and WagersDate_Key  = '2020-03-29' and Isp_Domain in ('电信','移动','联通')
+      group by GameKind_Key,Isp_Domain,Country_Name,Region_Name) a2 
+      on a1.GameKind_Key=a2.GameKind_Key and a1.Isp_Domain=a2.Isp_Domain and a1.Country_Name=a2.Country_Name and a1.Region_Name=a2.Region_Name) b2,
+
+      (select GameKind_Key,sum(WagersTotal) as wagerstotal_kind_old from Aggr_WagersIP_Geolocation 
+	  where GameKind_Key = '5' and WagersDate_Key = '2020-03-28' group by GameKind_Key) b3,
+       (select GameKind_Key,sum(WagersTotal) as wagerstotal_kind_new from Aggr_WagersIP_Geolocation 
+	  where GameKind_Key = '5' and WagersDate_Key = '2020-03-29' group by GameKind_Key) b4,
+       (select GameKind_Key,Isp_Domain from Aggr_WagersIP_Geolocation 
+	  where GameKind_Key = '5' and WagersDate_Key = '2020-03-28' group by GameKind_Key,Isp_Domain) b5
+where b1.Isp_Domain=b2.Isp_Domain 
+and ((b1.wagerstotal_rate >b2.wagerstotal_rate) or (b1.wagerstotal_rate =b2.wagerstotal_rate and b1.CR_name=b2.CR_name)) and b1.Isp_Domain=b5.Isp_Domain
+group by b1.GameKind_Key,b1.Isp_Domain, b1.CR_name,b1.wagerstotal_rate
+having rank <=3
+order by b1.GameKind_Key,b1.Isp_Domain,rank;
+
+
+
+
+
+select GameKind_Key,Isp_Domain,CR_name,wagerstotal_old,  wagerstotal_new, format(wagerstotal_rate*100,2) as wagerstotal_rate,  format(wagerstotal_ratio_diff*100,2) as wagerstotal_ratio_diff,rank 
+from (  select *,@row_number := IF(@kind_key = m1.GameKind_Key and @isp_name=m1.Isp_Domain,  @row_number + 1, 1) AS rank
+       ,@kind_key:= m1.GameKind_Key as dummy1, @isp_name:=m1.Isp_Domain as dummy2
+      from (select a1.*,concat(a1.Country_Name,'-',a1.Region_Name) as CR_name,a3.wagerstotal_kind_old,a5.wagerstotal_isp_old,
+           a1.wagerstotal_old/a3.wagerstotal_kind_old as wagerstotal_old_ratio, 
+      IFNULL(a2.wagerstotal_new,0) as wagerstotal_new, IFNULL(a2.wagerstotal_new,0)/a4.wagerstotal_kind_new as wagerstotal_new_ratio,
+      IFNULL(a2.wagerstotal_new,0)-a1.wagerstotal_old as wagerstotal_diff, (IFNULL(a2.wagerstotal_new,0)-a1.wagerstotal_old)/a1.wagerstotal_old as wagerstotal_rate, 
+          (IFNULL(a2.wagerstotal_new,0)/a4.wagerstotal_kind_new)-(a1.wagerstotal_old/a3.wagerstotal_kind_old) as wagerstotal_ratio_diff
+          from (select GameKind_Key,Isp_Domain,Country_Name,Region_Name,sum(WagersTotal) as wagerstotal_old from Aggr_WagersIP_Geolocation 
+  where GameKind_Key ='5' and WagersDate_Key = '2020-05-05' and Isp_Domain in ('电信','移动','联通')
+       group by GameKind_Key,Isp_Domain,Country_Name,Region_Name  ) a1 
+      left join (select GameKind_Key,Isp_Domain,Country_Name,Region_Name,sum(WagersTotal) as wagerstotal_new from Aggr_WagersIP_Geolocation 
+          where WagersDate_Key = '2020-05-06' and Isp_Domain in ('电信','移动','联通')
+              group by GameKind_Key,Isp_Domain,Country_Name,Region_Name) a2
+              on a1.GameKind_Key=a2.GameKind_Key and a1.Isp_Domain=a2.Isp_Domain and a1.Country_Name=a2.Country_Name and a1.Region_Name=a2.Region_Name
+     left join (select GameKind_Key,sum(WagersTotal) as wagerstotal_kind_old from Aggr_WagersIP_Geolocation 
+  where GameKind_Key ='5' and WagersDate_Key = '2020-05-05' group by GameKind_Key) a3
+       on a1.GameKind_Key=a3.GameKind_Key 
+              inner join (select GameKind_Key,sum(WagersTotal) as wagerstotal_kind_new from Aggr_WagersIP_Geolocation 
+              where WagersDate_Key = '2020-05-06' group by GameKind_Key) a4
+              on a1.GameKind_Key=a4.GameKind_Key 
+              inner join (select GameKind_Key,Isp_Domain,sum(WagersTotal) as wagerstotal_isp_old from Aggr_WagersIP_Geolocation 
+ where GameKind_Key ='5' and WagersDate_Key = '2020-05-05' group by GameKind_Key,Isp_Domain) a5
+      on a1.GameKind_Key=a5.GameKind_Key and a1.Isp_Domain=a5.Isp_Domain ) m1,      
+     (SELECT @kind_key:=0, @isp_name:=NULL, @row_number:=0) AS t
+     order by m1.GameKind_Key,m1.Isp_Domain, wagerstotal_rate) v1
+      having rank<=5
+      order by GameKind_Key,Isp_Domain,rank;
+
+
+
+      select GameKind_Key,Isp_Domain,CR_name,wagerstotal_old,  wagerstotal_new, format(wagerstotal_rate*100,2) as wagerstotal_rate,  
+      format(wagerstotal_ratio_diff*100,2) as wagerstotal_ratio_diff,rank
+from (  select *,@row_number := IF(@kind_key = m1.GameKind_Key and @isp_name=m1.Isp_Domain,  @row_number + 1, 1) AS rank
+       ,@kind_key:= m1.GameKind_Key as dummy1, @isp_name:=m1.Isp_Domain as dummy2
+      from (select a1.*,concat(a1.Country_Name,'-',a1.Region_Name) as CR_name,a3.wagerstotal_kind_old,a5.wagerstotal_isp_old,
+           a1.wagerstotal_old/a3.wagerstotal_kind_old as wagerstotal_old_ratio,
+      IFNULL(a2.wagerstotal_new,0) as wagerstotal_new, IFNULL(a2.wagerstotal_new,0)/a4.wagerstotal_kind_new as wagerstotal_new_ratio,
+      IFNULL(a2.wagerstotal_new,0)-a1.wagerstotal_old as wagerstotal_diff, (IFNULL(a2.wagerstotal_new,0)-a1.wagerstotal_old)/a1.wagerstotal_old as wagerstotal_rate,
+          (IFNULL(a2.wagerstotal_new,0)/a4.wagerstotal_kind_new)-(a1.wagerstotal_old/a3.wagerstotal_kind_old) as wagerstotal_ratio_diff
+          from (select GameKind_Key,Isp_Domain,Country_Name,Region_Name,sum(WagersTotal) as wagerstotal_old from Aggr_WagersIP_Geolocation
+  where GameKind_Key ='5' and WagersDate_Key = '2020-04-21' and Isp_Domain in ('电信','移动','联通')
+       group by GameKind_Key,Isp_Domain,Country_Name,Region_Name  ) a1
+      left join (select GameKind_Key,Isp_Domain,Country_Name,Region_Name,sum(WagersTotal) as wagerstotal_new from Aggr_WagersIP_Geolocation
+          where GameKind_Key ='5' and WagersDate_Key = '2020-04-22' and Isp_Domain in ('电信','移动','联通')
+              group by GameKind_Key,Isp_Domain,Country_Name,Region_Name) a2
+              on a1.GameKind_Key=a2.GameKind_Key and a1.Isp_Domain=a2.Isp_Domain and a1.Country_Name=a2.Country_Name and a1.Region_Name=a2.Region_Name
+     left join (select GameKind_Key,sum(WagersTotal) as wagerstotal_kind_old from Aggr_WagersIP_Geolocation
+  where GameKind_Key ='5' and WagersDate_Key = '2020-04-21' group by GameKind_Key) a3
+       on a1.GameKind_Key=a3.GameKind_Key
+              inner join (select GameKind_Key,sum(WagersTotal) as wagerstotal_kind_new from Aggr_WagersIP_Geolocation
+              where GameKind_Key ='5' and WagersDate_Key = '2020-04-22' group by GameKind_Key) a4
+              on a1.GameKind_Key=a4.GameKind_Key
+              inner join (select GameKind_Key,Isp_Domain,sum(WagersTotal) as wagerstotal_isp_old from Aggr_WagersIP_Geolocation
+ where GameKind_Key ='5' and WagersDate_Key = '2020-04-21' group by GameKind_Key,Isp_Domain) a5
+      on a1.GameKind_Key=a5.GameKind_Key and a1.Isp_Domain=a5.Isp_Domain ) m1,
+     (SELECT @kind_key:=0, @isp_name:=NULL, @row_number:=0) AS t
+     order by m1.GameKind_Key,m1.Isp_Domain, wagerstotal_ratio_diff) v1
+      having rank<=5
+      order by GameKind_Key,Isp_Domain,rank;
+
+
+
+
+
+
+
+      //地區比(月)
+
+select a1.GameKind_Key,a1.Isp_Domain,a1.Region_Name,a1.wagerstotal4,a2.wagerstotal3,a3.wagerstotal2,a4.wagerstotal1
+  from (select GameKind_Key,Isp_Domain,Country_Name,Region_Name,sum(WagersTotal) as wagerstotal4 from Aggr_WagersIP_Geolocation 
+	  where GameKind_Key = '5' and WagersDate_Key between '2020-04-01' and '2020-04-30' and Isp_Domain in ('电信','移动','联通')
+      group by GameKind_Key,Isp_Domain,Country_Name,Region_Name  ) a1 ,
+
+      (select GameKind_Key,Isp_Domain,Country_Name,Region_Name,sum(WagersTotal) as wagerstotal3 from Aggr_WagersIP_Geolocation 
+	  where GameKind_Key = '5' and WagersDate_Key between '2020-03-01' and '2020-03-31' and Isp_Domain in ('电信','移动','联通')
+      group by GameKind_Key,Isp_Domain,Country_Name,Region_Name  ) a2 ,
+      
+      (select GameKind_Key,Isp_Domain,Country_Name,Region_Name,sum(WagersTotal) as wagerstotal2 from Aggr_WagersIP_Geolocation 
+	  where GameKind_Key = '5' and WagersDate_Key = '2020-05-06' and Isp_Domain in ('电信','移动','联通')
+      group by GameKind_Key,Isp_Domain,Country_Name,Region_Name  ) a3 ,
+
+      (select GameKind_Key,Isp_Domain,Country_Name,Region_Name,sum(WagersTotal) as wagerstotal1 from Aggr_WagersIP_Geolocation 
+	  where GameKind_Key = '5' and WagersDate_Key = '2020-05-05' and Isp_Domain in ('电信','移动','联通')
+      group by GameKind_Key,Isp_Domain,Country_Name,Region_Name  ) a4 
+where (a1.Isp_Domain=a2.Isp_Domain and a2.Isp_Domain=a3.Isp_Domain and a3.Isp_Domain=a4.Isp_Domain)
+and (a1.Region_Name=a2.Region_Name and a2.Region_Name=a3.Region_Name and a3.Region_Name=a4.Region_Name)
+and a1.Isp_Domain=a2.Isp_Domain and a2.Isp_Domain=a3.Isp_Domain and a3.Isp_Domain=a4.Isp_Domain
+group by a1.GameKind_Key,a1.Isp_Domain, a1.Region_Name
+order by a1.GameKind_Key,a1.Isp_Domain;
+
+
+
+//地區比(週)
+select a1.GameKind_Key,a1.Isp_Domain,a1.Region_Name,a1.wagerstotal as wagerstotal4,a2.wagerstotal as wagerstotal3,a3.wagerstotal as wagerstotal2,a4.wagerstotal as wagerstotal1
+  from (select GameKind_Key,Isp_Domain,Country_Name,Region_Name,sum(WagersTotal) as wagerstotal from Aggr_WagersIP_Geolocation 
+	  where GameKind_Key = '5' and WagersDate_Key between '2020-04-19' and '2020-04-25' and Isp_Domain in ('电信','移动','联通')
+      group by GameKind_Key,Isp_Domain,Country_Name,Region_Name  ) a1 ,
+
+      (select GameKind_Key,Isp_Domain,Country_Name,Region_Name,sum(WagersTotal) as wagerstotal from Aggr_WagersIP_Geolocation 
+	  where GameKind_Key = '5' and WagersDate_Key between '2020-04-12' and '2020-04-18' and Isp_Domain in ('电信','移动','联通')
+      group by GameKind_Key,Isp_Domain,Country_Name,Region_Name  ) a2 ,
+      
+      (select GameKind_Key,Isp_Domain,Country_Name,Region_Name,sum(WagersTotal) as wagerstotal from Aggr_WagersIP_Geolocation 
+	  where GameKind_Key = '5' and WagersDate_Key between '2020-04-05' and '2020-04-11' and Isp_Domain in ('电信','移动','联通')
+      group by GameKind_Key,Isp_Domain,Country_Name,Region_Name  ) a3 ,
+
+      (select GameKind_Key,Isp_Domain,Country_Name,Region_Name,sum(WagersTotal) as wagerstotal from Aggr_WagersIP_Geolocation 
+	  where GameKind_Key = '5' and WagersDate_Key between '2020-03-29' and '2020-04-04' and Isp_Domain in ('电信','移动','联通')
+      group by GameKind_Key,Isp_Domain,Country_Name,Region_Name  ) a4 
+where (a1.Isp_Domain=a2.Isp_Domain and a2.Isp_Domain=a3.Isp_Domain and a3.Isp_Domain=a4.Isp_Domain)
+and (a1.Region_Name=a2.Region_Name and a2.Region_Name=a3.Region_Name and a3.Region_Name=a4.Region_Name )
+and a1.Isp_Domain=a2.Isp_Domain and a2.Isp_Domain=a3.Isp_Domain and a3.Isp_Domain=a4.Isp_Domain
+group by a1.GameKind_Key,a1.Isp_Domain, a1.Region_Name
+order by a1.GameKind_Key,a1.Isp_Domain;
+
+
+3/25 後
+
+
+select a1.GameKind_Key,a1.Isp_Domain,a1.Region_Name,a1.wagerstotal,a2.wagerstotal,a3.wagerstotal,a4.wagerstotal,a5.wagerstotal,a6.wagerstotal,a7.wagerstotal,a8.wagerstotal,a9.wagerstotal,a10.wagerstotal
+,a11.wagerstotal,a12.wagerstotal
+  from (select GameKind_Key,Isp_Domain,Country_Name,Platform,Region_Name,sum(WagersTotal) as wagerstotal from Aggr_WagersIP_Geolocation 
+	  where GameKind_Key = '5' and Platform =1 and WagersDate_Key between '2020-04-01' and '2020-04-25' and Isp_Domain in ('电信','移动','联通')
+      group by GameKind_Key,Isp_Domain,Country_Name,Region_Name,Platform ) a1 ,
+
+      (select GameKind_Key,Isp_Domain,Country_Name,Region_Name,sum(WagersTotal) as wagerstotal from Aggr_WagersIP_Geolocation 
+	  where GameKind_Key = '5' and WagersDate_Key between '2020-04-12' and '2020-04-18' and Isp_Domain in ('电信','移动','联通')
+      group by GameKind_Key,Isp_Domain,Country_Name,Region_Name  ) a2 ,
+      
+      (select GameKind_Key,Isp_Domain,Country_Name,Region_Name,sum(WagersTotal) as wagerstotal from Aggr_WagersIP_Geolocation 
+	  where GameKind_Key = '5' and WagersDate_Key between '2020-04-05' and '2020-04-11' and Isp_Domain in ('电信','移动','联通')
+      group by GameKind_Key,Isp_Domain,Country_Name,Region_Name  ) a3 ,
+
+      (select GameKind_Key,Isp_Domain,Country_Name,Region_Name,sum(WagersTotal) as wagerstotal from Aggr_WagersIP_Geolocation 
+	  where GameKind_Key = '5' and WagersDate_Key between '2020-03-29' and '2020-04-04' and Isp_Domain in ('电信','移动','联通')
+      group by GameKind_Key,Isp_Domain,Country_Name,Region_Name  ) a4 ,
+
+      (select GameKind_Key,Isp_Domain,Country_Name,Region_Name,sum(WagersTotal) as wagerstotal from Aggr_WagersIP_Geolocation 
+	  where GameKind_Key = '5' and WagersDate_Key between '2020-03-22' and '2020-03-28' and Isp_Domain in ('电信','移动','联通')
+      group by GameKind_Key,Isp_Domain,Country_Name,Region_Name  ) a5 ,
+
+      (select GameKind_Key,Isp_Domain,Country_Name,Region_Name,sum(WagersTotal) as wagerstotal from Aggr_WagersIP_Geolocation 
+	  where GameKind_Key = '5' and WagersDate_Key between '2020-03-15' and '2020-03-21' and Isp_Domain in ('电信','移动','联通')
+      group by GameKind_Key,Isp_Domain,Country_Name,Region_Name  ) a6 ,
+      
+      (select GameKind_Key,Isp_Domain,Country_Name,Region_Name,sum(WagersTotal) as wagerstotal from Aggr_WagersIP_Geolocation 
+	  where GameKind_Key = '5' and WagersDate_Key between '2020-03-08' and '2020-03-14' and Isp_Domain in ('电信','移动','联通')
+      group by GameKind_Key,Isp_Domain,Country_Name,Region_Name  ) a7 ,
+
+      (select GameKind_Key,Isp_Domain,Country_Name,Region_Name,sum(WagersTotal) as wagerstotal from Aggr_WagersIP_Geolocation 
+	  where GameKind_Key = '5' and WagersDate_Key between '2020-03-01' and '2020-03-07' and Isp_Domain in ('电信','移动','联通')
+      group by GameKind_Key,Isp_Domain,Country_Name,Region_Name  ) a8,
+
+      (select GameKind_Key,Isp_Domain,Country_Name,Region_Name,sum(WagersTotal) as wagerstotal from Aggr_WagersIP_Geolocation 
+	  where GameKind_Key = '5' and WagersDate_Key between '2020-02-23' and '2020-02-29' and Isp_Domain in ('电信','移动','联通')
+      group by GameKind_Key,Isp_Domain,Country_Name,Region_Name  ) a9 ,
+
+      (select GameKind_Key,Isp_Domain,Country_Name,Region_Name,sum(WagersTotal) as wagerstotal from Aggr_WagersIP_Geolocation 
+	  where GameKind_Key = '5' and WagersDate_Key between '2020-02-16' and '2020-02-22' and Isp_Domain in ('电信','移动','联通')
+      group by GameKind_Key,Isp_Domain,Country_Name,Region_Name  ) a10 ,
+      
+      (select GameKind_Key,Isp_Domain,Country_Name,Region_Name,sum(WagersTotal) as wagerstotal from Aggr_WagersIP_Geolocation 
+	  where GameKind_Key = '5' and WagersDate_Key between '2020-02-09' and '2020-02-15' and Isp_Domain in ('电信','移动','联通')
+      group by GameKind_Key,Isp_Domain,Country_Name,Region_Name  ) a11 ,
+
+      (select GameKind_Key,Isp_Domain,Country_Name,Region_Name,sum(WagersTotal) as wagerstotal from Aggr_WagersIP_Geolocation 
+	  where GameKind_Key = '5' and WagersDate_Key between '2020-02-02' and '2020-02-08' and Isp_Domain in ('电信','移动','联通')
+      group by GameKind_Key,Isp_Domain,Country_Name,Region_Name  ) a12
+where (a1.Isp_Domain=a2.Isp_Domain and a2.Isp_Domain=a3.Isp_Domain and a3.Isp_Domain=a4.Isp_Domain and a4.Isp_Domain=a5.Isp_Domain and a5.Isp_Domain=a6.Isp_Domain and a6.Isp_Domain=a7.Isp_Domain
+and a7.Isp_Domain=a8.Isp_Domain and a8.Isp_Domain=a9.Isp_Domain and a9.Isp_Domain=a10.Isp_Domain and a10.Isp_Domain=a11.Isp_Domain and a11.Isp_Domain=a12.Isp_Domain)
+and (a1.Region_Name=a2.Region_Name and a2.Region_Name=a3.Region_Name and a3.Region_Name=a4.Region_Name and a4.Region_Name=a5.Region_Name and a5.Region_Name=a6.Region_Name and a6.Region_Name=a7.Region_Name
+and a7.Region_Name=a8.Region_Name and a8.Region_Name=a9.Region_Name and a9.Region_Name=a10.Region_Name and a10.Region_Name=a11.Region_Name and a11.Region_Name=a12.Region_Name)
+and a1.Isp_Domain=a2.Isp_Domain and a2.Isp_Domain=a3.Isp_Domain and a3.Isp_Domain=a4.Isp_Domain and a4.Isp_Domain=a5.Isp_Domain and a5.Isp_Domain=a6.Isp_Domain and a6.Isp_Domain=a7.Isp_Domain
+and a7.Isp_Domain=a8.Isp_Domain and a8.Isp_Domain=a9.Isp_Domain and a9.Isp_Domain=a10.Isp_Domain and a10.Isp_Domain=a11.Isp_Domain and a11.Isp_Domain=a12.Isp_Domain
+group by a1.GameKind_Key,a1.Isp_Domain, a1.Region_Name
+order by a1.GameKind_Key,a1.Isp_Domain;
+
+
+select b1.GameKind_Key,b1.Isp_Domain,b1.cityname,sum(b1.WagersTotal) as old_wagersTotal,sum(b2.WagersTotal) as new_wagersTotal,sum(b2.WagersTotal) - sum(b1.WagersTotal) as diff_wagersTotal,format((sum(b2.WagersTotal)/29 - sum(b1.WagersTotal)/31)/(sum(b2.WagersTotal)/29 )*100,2) as rate
+from  (select GameKind_Key,Isp_Domain,concat(Country_Name,'-',Region_Name) as cityname,sum(WagersTotal) as wagersTotal from Aggr_WagersIP_Geolocation
+where WagersDate_Key = '2020-05-05' and GameKind_Key =5 and Region_Name like '$p' and Isp_Domain in ('电信','移动','联通') group by GameKind_Key,Isp_Domain,cityname order by GameKind_Key,Isp_Domain) b1,
+      (select GameKind_Key,Isp_Domain,concat(Country_Name,'-',Region_Name) as cityname,sum(WagersTotal) as wagersTotal from Aggr_WagersIP_Geolocation
+where WagersDate_Key = '2020-05-06' and GameKind_Key =5 and Region_Name like '$p' and Isp_Domain in ('电信','移动','联通') group by GameKind_Key,Isp_Domain,cityname order by GameKind_Key,Isp_Domain) b2
+where b1.GameKind_Key=b2.GameKind_Key and b1.Isp_Domain=b2.Isp_Domain
+group by b1.GameKind_Key,b1.Isp_Domain,b1.cityname
+order by b1.GameKind_Key,b1.Isp_Domain
+
+
+select GameKind_Key,Isp_Domain,CR_name,wagerstotal_new,wagerstotal_old,wagerstotal_diff_rate, format(wagerstotal_rate*100,2) as wagerstotal_rate,  format(wagerstotal_ratio_diff*100,2) as wagerstotal_ratio_diff,rank
+from (  select *,@row_number := IF(@kind_key = m1.GameKind_Key and @isp_name=m1.Isp_Domain,  @row_number + 1, 1) AS rank
+       ,@kind_key:= m1.GameKind_Key as dummy1, @isp_name:=m1.Isp_Domain as dummy2
+      from (select a1.*,concat(a1.Country_Name,'-',a1.Region_Name) as CR_name,a3.wagerstotal_kind_old,a5.wagerstotal_isp_old,
+           a1.wagerstotal_old/a3.wagerstotal_kind_old as wagerstotal_old_ratio,
+           ABS(IFNULL(a2.wagerstotal_new,0)-a1.wagerstotal_old) as wagerstotal_diff_rate,
+      IFNULL(a2.wagerstotal_new,0) as wagerstotal_new, IFNULL(a2.wagerstotal_new,0)/a4.wagerstotal_kind_new as wagerstotal_new_ratio,
+      IFNULL(a2.wagerstotal_new,0)-a1.wagerstotal_old as wagerstotal_diff, (IFNULL(a2.wagerstotal_new,0)-a1.wagerstotal_old)/a1.wagerstotal_old as wagerstotal_rate,
+          (IFNULL(a2.wagerstotal_new,0)/a4.wagerstotal_kind_new)-(a1.wagerstotal_old/a3.wagerstotal_kind_old) as wagerstotal_ratio_diff
+          from (select GameKind_Key,Isp_Domain,Country_Name,Region_Name,sum(WagersTotal) as wagerstotal_old from Aggr_WagersIP_Geolocation
+  where GameKind_Key ='5' and WagersDate_Key = '2020-04-26' and Isp_Domain = '移动'
+       group by GameKind_Key,Isp_Domain,Country_Name,Region_Name  ) a1
+      left join (select GameKind_Key,Isp_Domain,Country_Name,Region_Name,sum(WagersTotal) as wagerstotal_new from Aggr_WagersIP_Geolocation
+          where GameKind_Key ='5' and WagersDate_Key = '2020-04-27' and Isp_Domain = '移动'
+              group by GameKind_Key,Isp_Domain,Country_Name,Region_Name) a2
+              on a1.GameKind_Key=a2.GameKind_Key and a1.Isp_Domain=a2.Isp_Domain and a1.Country_Name=a2.Country_Name and a1.Region_Name=a2.Region_Name
+     left join (select GameKind_Key,sum(WagersTotal) as wagerstotal_kind_old from Aggr_WagersIP_Geolocation
+  where GameKind_Key ='5' and WagersDate_Key = '2020-04-26' group by GameKind_Key) a3
+       on a1.GameKind_Key=a3.GameKind_Key
+              inner join (select GameKind_Key,sum(WagersTotal) as wagerstotal_kind_new from Aggr_WagersIP_Geolocation
+              where GameKind_Key ='5' and  WagersDate_Key = '2020-04-27' group by GameKind_Key) a4
+              on a1.GameKind_Key=a4.GameKind_Key
+              inner join (select GameKind_Key,Isp_Domain,sum(WagersTotal) as wagerstotal_isp_old from Aggr_WagersIP_Geolocation
+ where GameKind_Key ='5' and WagersDate_Key = '2020-04-26' group by GameKind_Key,Isp_Domain) a5
+      on a1.GameKind_Key=a5.GameKind_Key and a1.Isp_Domain=a5.Isp_Domain ) m1,
+     (SELECT @kind_key:=0, @isp_name:=NULL, @row_number:=0) AS t
+     order by m1.GameKind_Key,m1.Isp_Domain, wagerstotal_ratio_diff) v1
+      order by GameKind_Key,Isp_Domain,rank;
+
+select  b1.GameKind_Key,b1.Isp_Domain,sum(abs(IFNULL(b2.wagerstotal_new,0)-b1.wagerstotal_old))as sum_wagerstotal_diff_abs
+                                from (select GameKind_Key,Isp_Domain,Country_Name,Region_Name,sum(WagersTotal) as wagerstotal_old from Aggr_WagersIP_Geolocation
+                                where GameKind_Key = '5' and WagersDate_Key = '2020-05-09' and Isp_Domain in ('电信','移动','联通')
+                         group by GameKind_Key,Isp_Domain,Country_Name,Region_Name  ) b1
+                         left join (select GameKind_Key,Isp_Domain,Country_Name,Region_Name,sum(WagersTotal) as wagerstotal_new from Aggr_WagersIP_Geolocation
+                         where GameKind_Key = '5' and WagersDate_Key = '2020-05-10' and Isp_Domain in ('电信','移动','联通')
+                         group by GameKind_Key,Isp_Domain,Country_Name,Region_Name) b2
+                         on b1.GameKind_Key=b2.GameKind_Key and b1.Isp_Domain=b2.Isp_Domain and b1.Country_Name=b2.Country_Name and b1.Region_Name=b2.Region_Name
+                         group by b1.GameKind_Key,b1.Isp_Domain
+
+select b1.GameKind_Key,b1.Isp_Domain,b1.Region_Name,b1.WagersTotal,b2.WagersTotal,b3.WagersTotal,b4.WagersTotal
+from  (select GameKind_Key,Isp_Domain,Region_Name,sum(WagersTotal) as wagersTotal from Aggr_WagersIP_Geolocation
+where WagersDate_Key between '2020-04-13' and '2020-04-19' and GameKind_Key =5 and Region_Name like '湖北' and Isp_Domain in ('电信','移动','联通') group by GameKind_Key,Isp_Domain,Region_Name order by GameKind_Key,Isp_Domain) b1,
+      (select GameKind_Key,Isp_Domain,Region_Name,sum(WagersTotal) as wagersTotal from Aggr_WagersIP_Geolocation
+where WagersDate_Key between '2020-04-20' and '2020-04-26' and GameKind_Key =5 and Region_Name like '湖北' and Isp_Domain in ('电信','移动','联通') group by GameKind_Key,Isp_Domain,Region_Name order by GameKind_Key,Isp_Domain) b2,
+      (select GameKind_Key,Isp_Domain,Region_Name,sum(WagersTotal) as wagersTotal from Aggr_WagersIP_Geolocation
+where WagersDate_Key between '2020-04-27' and '2020-05-03' and GameKind_Key =5 and Region_Name like '湖北' and Isp_Domain in ('电信','移动','联通') group by GameKind_Key,Isp_Domain,Region_Name order by GameKind_Key,Isp_Domain) b3,
+      (select GameKind_Key,Isp_Domain,Region_Name,sum(WagersTotal) as wagersTotal from Aggr_WagersIP_Geolocation
+where WagersDate_Key between '2020-05-04' and '2020-05-10' and GameKind_Key =5 and Region_Name like '湖北' and Isp_Domain in ('电信','移动','联通') group by GameKind_Key,Isp_Domain,Region_Name order by GameKind_Key,Isp_Domain) b4
+
+where b1.GameKind_Key=b2.GameKind_Key and b2.GameKind_Key=b3.GameKind_Key  and b3.GameKind_Key=b4.GameKind_Key and b1.Isp_Domain=b2.Isp_Domain and b2.Isp_Domain=b3.Isp_Domain and b3.Isp_Domain=b4.Isp_Domain
+group by b1.GameKind_Key,b1.Isp_Domain,b1.Region_Name
+order by b1.GameKind_Key,b1.Isp_Domain
+
+
+select b1.GameKind_Key,b1.Isp_Domain,b1.cityname,b1.WagersTotal,b2.WagersTotal
+from  (select GameKind_Key,Isp_Domain,concat(Country_Name,'-',Region_Name) as cityname,sum(WagersTotal) as wagersTotal from Aggr_WagersIP_Geolocation
+where WagersDate_Key = '2020-05-04' and GameKind_Key in ('3','5') and Region_Name like '福建' and Isp_Domain in ('电信','移动','联通') group by GameKind_Key,Isp_Domain,cityname order by GameKind_Key,Isp_Domain) b1,
+      (select GameKind_Key,Isp_Domain,concat(Country_Name,'-',Region_Name) as cityname,sum(WagersTotal) as wagersTotal from Aggr_WagersIP_Geolocation
+where WagersDate_Key = '2020-05-03' and GameKind_Key in ('3','5') and Region_Name like '福建' and Isp_Domain in ('电信','移动','联通') group by GameKind_Key,Isp_Domain,cityname order by GameKind_Key,Isp_Domain) b2
+where b1.GameKind_Key=b2.GameKind_Key and b1.Isp_Domain=b2.Isp_Domain
+group by b1.GameKind_Key,b1.Isp_Domain,b1.cityname
+order by b1.GameKind_Key,b1.Isp_Domain;
+
+select GameKind_Key,Isp_Domain,concat(Country_Name,'-',Region_Name) as cityname,sum(WagersTotal) as wagersTotal from Aggr_WagersIP_Geolocation
+where WagersDate_Key = '2020-05-10' and GameKind_Key =  '5' and Isp_Domain = '电信' group by GameKind_Key,cityname order by GameKind_Key
+
+select GameKind_Key,Isp_Domain,concat(Country_Name,'-',Region_Name) as cityname,sum(WagersTotal) as wagersTotal from Aggr_WagersIP_Geolocation
+where WagersDate_Key = ''2020-05-06'' and GameKind_Key ＝ '5' and Region_Name like '湖北' and Isp_Domain in ('电信','移动','联通') group by GameKind_Key,Isp_Domain,cityname order by GameKind_Key,Isp_Domain
+
+select GameKind_Key,Isp_Domain,Region_Name,sum(WagersTotal) as wagersTotal4m from Aggr_WagersIP_Geolocation
+where WagersDate_Key between '2020-04-27' and '2020-05-10' and GameKind_Key =5 and Region_Name like '湖北' and Isp_Domain in ('电信','移动','联通') group by GameKind_Key,Isp_Domain,Region_Name order by GameKind_Key,Isp_Domain
+select GameKind_Key,Isp_Domain,Region_Name,sum(WagersTotal) as wagersTotal4m from Aggr_WagersIP_Geolocation
+where WagersDate_Key = '2020-05-06'  and GameKind_Key =5 and Region_Name like '湖北' and Isp_Domain in ('电信','移动','联通') group by GameKind_Key,Isp_Domain,Region_Name order by GameKind_Key,Isp_Domain
+
+
+差異值
+
+select GameKind_Key,wagerstotal_kind_old,Isp_Domain,wagerstotal_isp_old,CR_name,wagerstotal_old,  wagerstotal_old_ratio, wagerstotal_new,  wagerstotal_new_ratio,   wagerstotal_diff, wagerstotal_rate,  wagerstotal_diff_ratio,rank 
+from (  select *,@row_number := IF(@kind_key = m1.GameKind_Key and @isp_name=m1.Isp_Domain,  @row_number + 1, 1) AS rank
+       ,@kind_key:= m1.GameKind_Key as dummy1, @isp_name:=m1.Isp_Domain as dummy2
+      from (select a1.*,concat(a1.Country_Name,'-',a1.Region_Name) as CR_name,a3.wagerstotal_kind_old,a5.wagerstotal_isp_old,
+           a1.wagerstotal_old/a3.wagerstotal_kind_old as wagerstotal_old_ratio, 
+	      IFNULL(a2.wagerstotal_new,0) as wagerstotal_new, IFNULL(a2.wagerstotal_new,0)/a4.wagerstotal_kind_new as wagerstotal_new_ratio,
+	      IFNULL(a2.wagerstotal_new,0)-a1.wagerstotal_old as wagerstotal_diff, (IFNULL(a2.wagerstotal_new,0)-a1.wagerstotal_old)/a1.wagerstotal_old as wagerstotal_rate, 
+          (IFNULL(a2.wagerstotal_new,0)-a1.wagerstotal_old)/a6.sum_wagerstotal_diff_abs as wagerstotal_diff_ratio
+          from (select GameKind_Key,Isp_Domain,Country_Name,Region_Name,sum(WagersTotal) as wagerstotal_old from Aggr_WagersIP_Geolocation 
+	 		 where WagersDate_Key = '2020-05-05' and Isp_Domain in ('电信','移动','联通')
+      		 group by GameKind_Key,Isp_Domain,Country_Name,Region_Name  ) a1 
+      		left join (select GameKind_Key,Isp_Domain,Country_Name,Region_Name,sum(WagersTotal) as wagerstotal_new from Aggr_WagersIP_Geolocation 
+	          where WagersDate_Key = '2020-05-06' and Isp_Domain in ('电信','移动','联通')
+              group by GameKind_Key,Isp_Domain,Country_Name,Region_Name) a2
+              on a1.GameKind_Key=a2.GameKind_Key and a1.Isp_Domain=a2.Isp_Domain and a1.Country_Name=a2.Country_Name and a1.Region_Name=a2.Region_Name
+     		left join (select GameKind_Key,sum(WagersTotal) as wagerstotal_kind_old from Aggr_WagersIP_Geolocation 
+	  		where WagersDate_Key = '2020-05-05' group by GameKind_Key) a3
+       		on a1.GameKind_Key=a3.GameKind_Key 
+              inner join (select GameKind_Key,sum(WagersTotal) as wagerstotal_kind_new from Aggr_WagersIP_Geolocation 
+              where WagersDate_Key = '2020-05-06' group by GameKind_Key) a4
+              on a1.GameKind_Key=a4.GameKind_Key 
+              inner join (select GameKind_Key,Isp_Domain,sum(WagersTotal) as wagerstotal_isp_old from Aggr_WagersIP_Geolocation 
+	 		where WagersDate_Key = '2020-05-05' group by GameKind_Key,Isp_Domain) a5
+      		on a1.GameKind_Key=a5.GameKind_Key and a1.Isp_Domain=a5.Isp_Domain
+           inner join (
+				select  b1.GameKind_Key,b1.Isp_Domain,sum(abs(IFNULL(b2.wagerstotal_new,0)-b1.wagerstotal_old))as sum_wagerstotal_diff_abs
+				from (select GameKind_Key,Isp_Domain,Country_Name,Region_Name,sum(WagersTotal) as wagerstotal_old from Aggr_WagersIP_Geolocation 
+				where WagersDate_Key = '2020-05-05' and Isp_Domain in ('电信','移动','联通')
+		         group by GameKind_Key,Isp_Domain,Country_Name,Region_Name  ) b1 
+		         left join (select GameKind_Key,Isp_Domain,Country_Name,Region_Name,sum(WagersTotal) as wagerstotal_new from Aggr_WagersIP_Geolocation 
+		         where WagersDate_Key = '2020-05-06' and Isp_Domain in ('电信','移动','联通')
+		         group by GameKind_Key,Isp_Domain,Country_Name,Region_Name) b2 
+		         on b1.GameKind_Key=b2.GameKind_Key and b1.Isp_Domain=b2.Isp_Domain and b1.Country_Name=b2.Country_Name and b1.Region_Name=b2.Region_Name
+		         group by b1.GameKind_Key,b1.Isp_Domain) a6
+                  on a1.GameKind_Key=a6.GameKind_Key and a1.Isp_Domain=a6.Isp_Domain
+           ) m1,      
+     	 (SELECT @kind_key:=0, @isp_name:=NULL, @row_number:=0) AS t
+           order by m1.GameKind_Key,m1.Isp_Domain, wagerstotal_diff) v1
+   having rank<=3
+   order by GameKind_Key,Isp_Domain,rank;
+
+   select GameKind_Key,Isp_Domain,CR_name,wagerstotal_old,  wagerstotal_new, format(wagerstotal_rate*100,2) as wagerstotal_rate,  format(wagerstotal_ratio_diff*100,2) as wagerstotal_ratio_diff,rank
+from (  select *,@row_number := IF(@kind_key = m1.GameKind_Key and @isp_name=m1.Isp_Domain,  @row_number + 1, 1) AS rank
+       ,@kind_key:= m1.GameKind_Key as dummy1, @isp_name:=m1.Isp_Domain as dummy2
+      from (select a1.*,concat(a1.Country_Name,'-',a1.Region_Name) as CR_name,a3.wagerstotal_kind_old,a5.wagerstotal_isp_old,
+           a1.wagerstotal_old/a3.wagerstotal_kind_old as wagerstotal_old_ratio,
+      IFNULL(a2.wagerstotal_new,0) as wagerstotal_new, IFNULL(a2.wagerstotal_new,0)/a4.wagerstotal_kind_new as wagerstotal_new_ratio,
+      IFNULL(a2.wagerstotal_new,0)-a1.wagerstotal_old as wagerstotal_diff, (IFNULL(a2.wagerstotal_new,0)-a1.wagerstotal_old)/a1.wagerstotal_old as wagerstotal_rate,
+          (IFNULL(a2.wagerstotal_new,0)/a4.wagerstotal_kind_new)-(a1.wagerstotal_old/a3.wagerstotal_kind_old) as wagerstotal_ratio_diff
+          from (select GameKind_Key,Isp_Domain,Country_Name,Region_Name,sum(WagersTotal) as wagerstotal_old from Aggr_WagersIP_Geolocation
+  where GameKind_Key ='5' and WagersDate_Key = ''2020-05-05'' and Isp_Domain in ('电信','移动','联通')
+       group by GameKind_Key,Isp_Domain,Country_Name,Region_Name  ) a1
+      left join (select GameKind_Key,Isp_Domain,Country_Name,Region_Name,sum(WagersTotal) as wagerstotal_new from Aggr_WagersIP_Geolocation
+          where GameKind_Key ='5' and WagersDate_Key = ''2020-05-06'' and Isp_Domain in ('电信','移动','联通')
+              group by GameKind_Key,Isp_Domain,Country_Name,Region_Name) a2
+              on a1.GameKind_Key=a2.GameKind_Key and a1.Isp_Domain=a2.Isp_Domain and a1.Country_Name=a2.Country_Name and a1.Region_Name=a2.Region_Name
+     left join (select GameKind_Key,sum(WagersTotal) as wagerstotal_kind_old from Aggr_WagersIP_Geolocation
+  where GameKind_Key ='5' and WagersDate_Key = ''2020-05-05'' group by GameKind_Key) a3
+       on a1.GameKind_Key=a3.GameKind_Key
+              inner join (select GameKind_Key,sum(WagersTotal) as wagerstotal_kind_new from Aggr_WagersIP_Geolocation
+              where GameKind_Key ='5' and  WagersDate_Key = ''2020-05-06'' group by GameKind_Key) a4
+              on a1.GameKind_Key=a4.GameKind_Key
+              inner join (select GameKind_Key,Isp_Domain,sum(WagersTotal) as wagerstotal_isp_old from Aggr_WagersIP_Geolocation
+ where GameKind_Key ='5' and WagersDate_Key = ''2020-05-05'' group by GameKind_Key,Isp_Domain) a5
+      on a1.GameKind_Key=a5.GameKind_Key and a1.Isp_Domain=a5.Isp_Domain ) m1,
+     (SELECT @kind_key:=0, @isp_name:=NULL, @row_number:=0) AS t
+     order by m1.GameKind_Key,m1.Isp_Domain, wagerstotal_ratio_diff) v1
+      having rank<=5
+      order by GameKind_Key,Isp_Domain,rank;
+
+
+      select GameKind_Key,Isp_Domain,CR_name,wagerstotal_old, wagerstotal_new, wagerstotal_rate,  wagerstotal_diff_ratio,rank 
+from (  select *,@row_number := IF(@kind_key = m1.GameKind_Key and @isp_name=m1.Isp_Domain,  @row_number + 1, 1) AS rank
+       ,@kind_key:= m1.GameKind_Key as dummy1, @isp_name:=m1.Isp_Domain as dummy2
+      from (select a1.*,concat(a1.Country_Name,'-',a1.Region_Name) as CR_name,a3.wagerstotal_kind_old,a5.wagerstotal_isp_old,
+	      IFNULL(a2.wagerstotal_new,0) as wagerstotal_new,
+	      IFNULL(a2.wagerstotal_new,0)-a1.wagerstotal_old as wagerstotal_diff, (IFNULL(a2.wagerstotal_new,0)-a1.wagerstotal_old)/a1.wagerstotal_old as wagerstotal_rate, 
+          (IFNULL(a2.wagerstotal_new,0)-a1.wagerstotal_old)/a6.sum_wagerstotal_diff_abs as wagerstotal_diff_ratio
+          from (select GameKind_Key,Isp_Domain,Country_Name,Region_Name,sum(WagersTotal) as wagerstotal_old from Aggr_WagersIP_Geolocation 
+	 		 where GameKind_Key = '5' and WagersDate_Key = '2020-05-05' and Isp_Domain in ('电信','移动','联通')
+      		 group by GameKind_Key,Isp_Domain,Country_Name,Region_Name  ) a1 
+      		left join (select GameKind_Key,Isp_Domain,Country_Name,Region_Name,sum(WagersTotal) as wagerstotal_new from Aggr_WagersIP_Geolocation 
+	          where GameKind_Key = '5' and WagersDate_Key = '2020-05-06' and Isp_Domain in ('电信','移动','联通')
+              group by GameKind_Key,Isp_Domain,Country_Name,Region_Name) a2
+              on a1.GameKind_Key=a2.GameKind_Key and a1.Isp_Domain=a2.Isp_Domain and a1.Country_Name=a2.Country_Name and a1.Region_Name=a2.Region_Name
+     		left join (select GameKind_Key,sum(WagersTotal) as wagerstotal_kind_old from Aggr_WagersIP_Geolocation 
+	  		where GameKind_Key = '5' and WagersDate_Key = '2020-05-05' group by GameKind_Key) a3
+       		on a1.GameKind_Key=a3.GameKind_Key 
+              inner join (select GameKind_Key,sum(WagersTotal) as wagerstotal_kind_new from Aggr_WagersIP_Geolocation 
+              where GameKind_Key = '5' and WagersDate_Key = '2020-05-06' group by GameKind_Key) a4
+              on a1.GameKind_Key=a4.GameKind_Key 
+              inner join (select GameKind_Key,Isp_Domain,sum(WagersTotal) as wagerstotal_isp_old from Aggr_WagersIP_Geolocation 
+	 		where GameKind_Key = '5' and WagersDate_Key = '2020-05-05' group by GameKind_Key,Isp_Domain) a5
+      		on a1.GameKind_Key=a5.GameKind_Key and a1.Isp_Domain=a5.Isp_Domain
+           inner join (
+				select  b1.GameKind_Key,b1.Isp_Domain,sum(abs(IFNULL(b2.wagerstotal_new,0)-b1.wagerstotal_old))as sum_wagerstotal_diff_abs
+				from (select GameKind_Key,Isp_Domain,Country_Name,Region_Name,sum(WagersTotal) as wagerstotal_old from Aggr_WagersIP_Geolocation 
+				where GameKind_Key = '5' and WagersDate_Key = '2020-05-05' and Isp_Domain in ('电信','移动','联通')
+		         group by GameKind_Key,Isp_Domain,Country_Name,Region_Name  ) b1 
+		         left join (select GameKind_Key,Isp_Domain,Country_Name,Region_Name,sum(WagersTotal) as wagerstotal_new from Aggr_WagersIP_Geolocation 
+		         where GameKind_Key = '5' and WagersDate_Key = '2020-05-06' and Isp_Domain in ('电信','移动','联通')
+		         group by GameKind_Key,Isp_Domain,Country_Name,Region_Name) b2 
+		         on b1.GameKind_Key=b2.GameKind_Key and b1.Isp_Domain=b2.Isp_Domain and b1.Country_Name=b2.Country_Name and b1.Region_Name=b2.Region_Name
+		         group by b1.GameKind_Key,b1.Isp_Domain) a6
+                  on a1.GameKind_Key=a6.GameKind_Key and a1.Isp_Domain=a6.Isp_Domain
+           ) m1,      
+     	 (SELECT @kind_key:=0, @isp_name:=NULL, @row_number:=0) AS t
+           order by m1.GameKind_Key,m1.Isp_Domain, wagerstotal_diff_ratio) v1
+   having rank<=50
+   order by GameKind_Key,Isp_Domain,rank;
+
+    select GameKind_Key,Isp_Domain,CR_name,wagerstotal_old, wagerstotal_new, format(wagerstotal_rate,2),  format(wagerstotal_diff_ratio,2),rank 
+from (  select *,@row_number := IF(@kind_key = m1.GameKind_Key and @isp_name=m1.Isp_Domain,  @row_number + 1, 1) AS rank
+       ,@kind_key:= m1.GameKind_Key as dummy1, @isp_name:=m1.Isp_Domain as dummy2
+      from (select a1.*,concat(a1.Country_Name,'-',a1.Region_Name) as CR_name,a3.wagerstotal_kind_old,a5.wagerstotal_isp_old,
+	      IFNULL(a2.wagerstotal_new,0) as wagerstotal_new,
+	      IFNULL(a2.wagerstotal_new,0)-a1.wagerstotal_old as wagerstotal_diff, (IFNULL(a2.wagerstotal_new,0)-a1.wagerstotal_old)/a1.wagerstotal_old*100 as wagerstotal_rate, 
+          (IFNULL(a2.wagerstotal_new,0)-a1.wagerstotal_old)/a6.sum_wagerstotal_diff_abs*100 as wagerstotal_diff_ratio
+          from (select GameKind_Key,Isp_Domain,Country_Name,Region_Name,sum(WagersTotal) as wagerstotal_old from Aggr_WagersIP_Geolocation 
+	 		 where GameKind_Key = '5' and WagersDate_Key = '2020-05-05' and Isp_Domain in ('电信','移动','联通')
+      		 group by GameKind_Key,Isp_Domain,Country_Name,Region_Name  ) a1 
+      		left join (select GameKind_Key,Isp_Domain,Country_Name,Region_Name,sum(WagersTotal) as wagerstotal_new from Aggr_WagersIP_Geolocation 
+	          where GameKind_Key = '5' and WagersDate_Key = '2020-05-06' and Isp_Domain in ('电信','移动','联通')
+              group by GameKind_Key,Isp_Domain,Country_Name,Region_Name) a2
+              on a1.GameKind_Key=a2.GameKind_Key and a1.Isp_Domain=a2.Isp_Domain and a1.Country_Name=a2.Country_Name and a1.Region_Name=a2.Region_Name
+     		left join (select GameKind_Key,sum(WagersTotal) as wagerstotal_kind_old from Aggr_WagersIP_Geolocation 
+	  		where GameKind_Key = '5' and WagersDate_Key = '2020-05-05' group by GameKind_Key) a3
+       		on a1.GameKind_Key=a3.GameKind_Key 
+              inner join (select GameKind_Key,sum(WagersTotal) as wagerstotal_kind_new from Aggr_WagersIP_Geolocation 
+              where GameKind_Key = '5' and WagersDate_Key = '2020-05-06' group by GameKind_Key) a4
+              on a1.GameKind_Key=a4.GameKind_Key 
+              inner join (select GameKind_Key,Isp_Domain,sum(WagersTotal) as wagerstotal_isp_old from Aggr_WagersIP_Geolocation 
+	 		where GameKind_Key = '5' and WagersDate_Key = '2020-05-05' group by GameKind_Key,Isp_Domain) a5
+      		on a1.GameKind_Key=a5.GameKind_Key and a1.Isp_Domain=a5.Isp_Domain
+           inner join (
+				select  b1.GameKind_Key,b1.Isp_Domain,sum(abs(IFNULL(b2.wagerstotal_new,0)-b1.wagerstotal_old))as sum_wagerstotal_diff_abs
+				from (select GameKind_Key,Isp_Domain,Country_Name,Region_Name,sum(WagersTotal) as wagerstotal_old from Aggr_WagersIP_Geolocation 
+				where GameKind_Key = '5' and WagersDate_Key = '2020-05-05' and Isp_Domain in ('电信','移动','联通')
+		         group by GameKind_Key,Isp_Domain,Country_Name,Region_Name  ) b1 
+		         left join (select GameKind_Key,Isp_Domain,Country_Name,Region_Name,sum(WagersTotal) as wagerstotal_new from Aggr_WagersIP_Geolocation 
+		         where GameKind_Key = '5' and WagersDate_Key = '2020-05-06' and Isp_Domain in ('电信','移动','联通')
+		         group by GameKind_Key,Isp_Domain,Country_Name,Region_Name) b2 
+		         on b1.GameKind_Key=b2.GameKind_Key and b1.Isp_Domain=b2.Isp_Domain and b1.Country_Name=b2.Country_Name and b1.Region_Name=b2.Region_Name
+		         group by b1.GameKind_Key,b1.Isp_Domain) a6
+                  on a1.GameKind_Key=a6.GameKind_Key and a1.Isp_Domain=a6.Isp_Domain
+           ) m1,      
+     	 (SELECT @kind_key:=0, @isp_name:=NULL, @row_number:=0) AS t
+           order by m1.GameKind_Key,m1.Isp_Domain, wagerstotal_rate) v1
+   having rank<=5
+   order by GameKind_Key,Isp_Domain,rank;
+
+
+   

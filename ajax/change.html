@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title></title>
+	<script src="https://code.jquery.com/jquery-3.4.1.min.js"
+        integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+	<style>
+		.selected{
+  color:blue;
+}
+	</style>
+</head>
+<body>
+<ul>
+  <li class="selected">foo1</li>
+  <li>foo2</li>
+  <li>foo3</li>
+  <li>foo4</li>
+</ul>
+<script>
+	$(function(){
+  $("li").click(function(){
+   $(this).addClass("selected").siblings().removeClass("selected");
+  });
+});
+</script>
+</body>
+</html>

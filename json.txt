@@ -1,0 +1,52 @@
+[
+  {
+    "name" : "Molecule Man",
+    "age" : 29,
+    "secretIdentity" : "Dan Jukes",
+    "powers" : [
+      "Radiation resistance",
+      "Turning tiny",
+      "Radiation blast"
+    ]
+  },
+  {
+    "name" : "Madame Uppercut",
+    "age" : 39,
+    "secretIdentity" : "Jane Wilson",
+    "powers" : [
+      "Million tonne punch",
+      "Damage resistance",
+      "Superhuman reflexes"
+    ]
+  },
+  {
+    "name" : "sp",
+    "age" : 30,
+    "secretIdentity" : "Jane Wilson",
+    "powers" : [
+      "Million tonne punch",
+      "Damage resistance",
+      "Superhuman reflexes"
+    ]
+  },
+  {
+    "name" : "Hogan",
+    "age" : 35,
+    "secretIdentity" : "Jane Wilson",
+    "powers" : [
+      "Million tonne punch",
+      "Damage resistance",
+      "Superhuman reflexes"
+    ]
+  },
+  {
+    "name" : "sp4sp4sp4",
+    "age" : 40,
+    "secretIdentity" : "Jane Wilson",
+    "powers" : [
+      "Million tonne punch",
+      "Damage resistance",
+      "Superhuman reflexes"
+    ]
+  }
+]

@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Tokyo Onepiece Tower</title>
+    <meta charset="utf-8">
+    <!-- <link rel="stylesheet" href="css/onepiece.css"> -->
+    <style>
+        #left {
+            position: relative;
+            height: 100%;
+            width: 35%;
+            top: 0;
+            left: 0;
+            background-color: rgb(51, 197, 216);
+            background-size: contain;
+            background-repeat: no-repeat;
+            position: fixed;
+        }
+        #right {
+            background-image: url("img/bg_dot.jpg");
+            position: absolute;
+            width: 65%;
+            text-align: center; 
+            top: 0;
+            right: 0;
+        }
+        table {
+            text-align: center;
+        }
+        td,
+        th {
+            border-collapse: collapse;
+            border: 1px solid rgb(15, 15, 13);
+            text-align: center;
+            padding: 5px
+        }
+        th {
+            background-color: aqua;
+            padding:5px;
+        }
+        p,
+        h5 {
+            font-size: 1;
+            right: 0;
+            font-family:sans-serif;
+        }
+        h1 {
+            text-align: center;
+        }
+        #change:hover {
+            opacity: 0.4;
+        }
+        #rightright {
+            text-align: left;
+            padding: 20px 70px 20px 70px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <a href="https://zvlewnkfynuwq0wd0h3v0w-on.drv.tw/HTMLDemo/OnepieceTower/" target="_blank">點選開起海賊王網頁</a>
+
+    <!-- 1. 分成左邊的袋子和右邊的袋子 -->
+
+    <!-- 2. 把左邊的袋子放入foreign_parts_left.png；右邊的袋子，放入10張logo_01.png-->
+    <!-- (放入10張logo_01.png是為了撐大袋子，看一下畫面比例) -->
+
+    <!-- 3. 如何固定住左邊的區塊? -->
+
+    <!-- 4. 如何調整元素位置? (position) -->
+
+    <!-- 5. 調整完佈局，接下來應該就OK了。 -->
+    <div id="left">
+        <img src="img/foreign_parts_left.png" alt="">
+        <form action="skyform.php" method="post" style="margin-left:10%" onkeyup="word()" onsubmit="return alert_bbin();">
+            <h3 style=color:blue;>GM-BBIN機器人<br>※通知客管端維護/分項遊戲維護資訊※<a id="right" href="exampleblog.php" style="margin-left:  10px" class="btn  btn-success pull-right">範本</a></h3>
+            <div style="width: 500px;">
+                <textarea style="border:3px black dashed;border-radius:5px;background-color:rgba(241,241,241,.98);width: 500px;height: 500px;padding: 10px;resize: none;" placeholder="輸入群發內容" name="content" id="content"></textarea><br>
+                <input type="submit" class="btn btn-primary" data-toggle="button" style="background-color:black" id="send">
+                <span id="cul_word">
+                    <h4 ondblclick="load()">剩餘字元:<span id="test" style="">950</span></h4>
+                </span>
+            </div>
+            
+
+
+            </div>
+            <div>
+                <?php
+                if (!isset($_REQUEST['content'])) exit(0);
+                echo $_REQUEST['content'];
+                ?>
+            </div>
+        </form>
+    </div>
+
+    <div id="right">
+        <h1>注意事項</h1>
+        <div class="container">
+            <table class="table table-hover">
+                <tbody>
+                    <tr>
+                        <form action="skyform.php" method="post" enctype='multipart/form-data'>
+                            <input type="hidden" name="updateid" value='1'>
+                            <td><textarea name="content" cols="100" rows="8"><?php echo $product->content; ?></textarea></td>
+                            <td><input type="submit" value="update"> </td>
+                        </form>
+
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </div>
+
+</body>
+
+</html>

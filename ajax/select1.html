@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"
+        integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+</head>
+
+<body bgcolor="#444444" onLoad="window.setTimeout('getSecs()',1)">
+
+
+
+
+    <!--  ----------------------------------------------------------------------  -->
+    <!--  注意：請將以下<META>元素新增至您的網頁<HEAD>。如有需要，請修改 charset 參數，以指定您 HTML 網頁的字元組。      -->
+    <!--  ----------------------------------------------------------------------  -->
+
+    <META HTTP-EQUIV="Content-type" CONTENT="text/html; charset=UTF-8">
+
+    <!--  ----------------------------------------------------------------------  -->
+    <!--  注意：請將以下<FORM>元素新增至您的網頁。                                                 -->
+    <!--  ----------------------------------------------------------------------  -->
+
+    <form action="https://cy--gmop190909.cs6.my.salesforce.com/servlet/servlet.WebToCase?encoding=UTF-8" method="POST">
+
+        <input type=hidden name="orgid" value="00DN0000000ByXB">
+        <input type=hidden name="retURL" value="http://www.google.com">
+
+        <!--  ----------------------------------------------------------------------  -->
+        <!--  注意：這些欄位是選擇性的除錯元素。如果您要在除錯模式下測試，請取消註解這些行。                                 -->
+        <!--  <input type="hidden" name="debug" value=1>                              -->
+        <!--  <input type="hidden" name="debugEmail" value="gmgm@mail.chungyo.net">   -->
+        <!--  ----------------------------------------------------------------------  -->
+
+        <label for="name">連絡人姓名</label><input id="name" maxlength="80" name="name" size="20" type="text" /><br>
+
+        <label for="email">電子郵件</label><input id="email" maxlength="80" name="email" size="20" type="text" /><br>
+
+        <label for="phone">電話</label><input id="phone" maxlength="40" name="phone" size="20" type="text" /><br>
+
+        <label for="subject">主題</label><input id="subject" maxlength="80" name="subject" size="20" type="text" /><br>
+
+        <label for="description">描述</label><textarea name="description"></textarea><br>
+
+        內容:<textarea id="00N7F00000Q7DHTUA3" name="00N7F00000Q7DHTUA3" rows="15" type="text" wrap="soft"></textarea>
+        <script>CKEDITOR.timestamp = '4.11.2.21';
+            var protocolAndHost = window.location.protocol + '//' + window.location.host;
+
+            var editor = CKEDITOR.replace('00N7F00000Q7DHTUA3', {
+                removePlugins: 'elementspath,maximize,image,tabletools,liststyle,contextmenu,resize',
+                baseHref: protocolAndHost + '/ckeditor/ckeditor-4.x/rel/',
+                customConfig: '/ckeditor/ckeditor-4.x/rel/sfdc-config.js',
+                height: '255',
+                bodyId: '00N7F00000Q7DHTUA3_rta_body',
+                toolbar: 'SalesforceBasic',
+                sfdcLabels: { CkeQuickText: { title: '插入快速文字' }, CkeMediaEmbed: { iframeMissing: '無效的 &lt;iframe&gt; 元素。請使用已批准網站的有效程式碼。', subtitle: '在此處貼上 &amp;lt;iframe&amp;gt; 程式碼：', description: '使用來自已批准影片來源的 &lt;iframe&gt; 程式碼。', title: '內嵌多媒體內容', exampleTitle: '範例：', example: '\n\n&lt;iframe width=\&quot;560\&quot; height=\&quot;315\&quot; src=\&quot;https://www.youtube.com/embed/KcOm0TNvKBA\&quot; frameborder=\&quot;0\&quot; allowfullscreen&gt;&lt;/iframe&gt;\n            \n        ' }, CkeImageMenu: { uploadFile: ' 瀏覽或上載', uploadUrl: '網頁影像', title: '在訊息中插入影像' }, CkeImagePaste: { CkeImagePasteWarning: '無法在 Firefox 正確貼上影像，請改用 [複製影像位置]。' }, CkeImageDialog: { infoTab_desc_info: '輸入視障使用者的影像描述', uploadTab_desc: '描述', defaultImageDescription: '使用者新增的影像', uploadTab_file_info: '大小上限 1 MB。僅限 png、gif 或 jpeg', uploadTab_desc_info: '輸入視障使用者的影像描述', imageUploadLimit_info: '已超過上載影像的最大數目', btn_insert_tooltip: '插入影像', httpUrlWarning: '您確定要使用 HTTP URL 嗎？使用 HTTP 影像 URL 可能會導致不安全內容的相關安全性警告。若要避免產生這些警告，請改用 HTTPS 影像 URL。', title: '插入影像', error: '錯誤：', uploadTab: '上載影像', wrongFileTypeError: '您僅可插入 .gif、.jpeg 和 .png 檔。', infoTab_url: 'URL', infoTab: '網址', infoTab_url_info: '範例：http://www.mysite.com/myimage.jpg', missingUrlError: '您必須輸入一個 URL', uploadTab_file: '選取影像', btn_update_tooltip: '更新影像', infoTab_desc: '描述', btn_insert: '插入', btn_update: '更新', btn_upadte: '更新', invalidUrlError: '您僅能使用 http:、https:、data:、//、/ 或相對 URL 結構。' }, sfdcSwitchToText: { sfdcSwitchToTextAlt: '使用純文字' }, CkeSmartLink: { SmartLinkContextMenuEdit: '編輯智慧連結', title: '插入智慧連結' } },
+                contentsCss: ['/ckeditor/ckeditor-4.x/rel/contents.css', '/sCSS/47.0/sprites/1573671558000/Theme3/zh/gc/CKEditor.css', '/sCSS/47.0/sprites/1573671558000/Theme3/zh/gc/HtmlDetailElem.css'],
+                disableNativeSpellChecker: false,
+                language: 'zh-tw',
+                allowIframe: false,
+                sharedSpaces: { top: 'cke_topSpace', bottom: ' cke_bottomSpace' }
+                , filebrowserImageUploadUrl: '/_ui/common/request/servlet/RtaImageUploadServlet?_CONFIRMATIONTOKEN=VmpFPSxNakF4T1MweE1pMHhOVlF3TmpveE9Ub3dNUzQ1TlRWYSxIVUIycmxXTUtvWFI5TVFCUFY2aVE2LE5HRm1NemMy'
+                , extraPlugins: 'sfdcImage,sfdcMediaEmbed,sfdcSmartLink,sfdcCodeBlock,sfdcVfAjax4J,sfdcQuickText'
+            });
+
+            editor.on('instanceReady', function (evt) {
+                try {
+                    var id = evt.editor.name;
+                    CKiframe = document.getElementById('cke_' + id).querySelector('iframe');
+                    meta = document.createElement('meta');
+                    meta.setAttribute('name', 'referrer');
+                    meta.setAttribute('content', 'no-referrer');
+                    CKiframe.contentDocument.head.appendChild(meta);
+                } catch (e) { }
+            });
+
+        </script><br>
+
+        發生原因(TAG):<select id="00N7F00000Q7DHn" name="00N7F00000Q7DHn" title="發生原因(TAG)">
+            <option value="">--無--</option>
+            <option value="線路問題">線路問題</option>
+            <option value="CDN問題">CDN問題</option>
+            <option value="惡意被跳轉">惡意被跳轉</option>
+            <option value="網路設備問題">網路設備問題</option>
+            <option value="機器異常">機器異常</option>
+            <option value="程式問題">程式問題</option>
+            <option value="原因不明">原因不明</option>
+            <option value="駭客攻擊影響">駭客攻擊影響</option>
+            <option value="DB問題">DB問題</option>
+            <option value="非公司問題">非公司問題</option>
+        </select><br>
+
+        <input type="submit" name="submit">
+
+    </form>
+
+
+</body>
+
+</html>

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <script src="https://code.jquery.com/jquery-3.4.1.min.js"
+        integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+</head>
+
+<body bgcolor="#444444" onLoad="window.setTimeout('getSecs()',1)">
+
+    <script language="javascript">
+
+        $(document).ready(function () {
+            $("#CheckAll").click(function () {
+                if ($("#CheckAll").prop("checked")) {//如果全選按鈕有被選擇的話（被選擇是true）
+                    $("input[name='Checkbox[]']").each(function () {
+                        $(this).prop("checked", true);//把所有的核取方框的property都變成勾選
+                    })
+                } else {
+                    $("input[name='Checkbox[]']").each(function () {
+                        $(this).prop("checked", false);//把所有的核方框的property都取消勾選
+                    })
+                }
+            })
+        })
+        
+    </script>
+
+
+    <form id="form1" name="form1" method="post" action="postOrder.php">
+        <p>
+            <label>
+                <input type="checkbox" name="CheckAll" value="123" id="CheckAll" />
+                全選以下</label>
+            <br />
+            ------------------<br />
+        </p>
+        <p>
+            <label>
+                <input type="checkbox" name="Checkbox[]" value="019:29605c10c1b34ccd869fbf54fc07b295@thread.skype" id="CheckboxGroup1_0" />
+                機車</label>
+            <br />
+            <label>
+                <input type="checkbox" name="Checkbox[]" value="019:56bec06b58c2466e9d9fe3791a6b7b85@thread.skype" id="CheckboxGroup1_1" />
+                腳踏車</label>
+            <br />
+            <label>
+                <input type="checkbox" name="Checkbox[]" value="019:59d82b8cc71d41dda0c1df3fbfca6892@thread.skype" id="CheckboxGroup1_2" />
+                公車</label>
+            <br />
+            <label>
+                <input type="checkbox" name="Checkbox[]" value="019:c7572ea9673349ebb6370af6e1d56e43@thread.skype" id="CheckboxGroup1_3" />
+                捷運</label>
+        </p>
+        <p>
+            <input type="submit" name="button" id="button" value="送出" />
+            <br />
+        </p>
+    </form>
+
+</body>
+
+</html>
